@@ -34,6 +34,7 @@ This project has been cleaned and restructured for **complete Netlify deployment
 - **Enhanced Metadata**: Page numbers, confidence scores, and relevance indicators
 - **Merged Results**: Multiple matches in same document are intelligently combined
 - **Beautiful UI**: Modern dark theme with responsive design
+- **Real PDF Extraction**: Uses PDF.js for actual text extraction from PDFs
 - **No Backend Required**: Works entirely in the browser
 - **Netlify Ready**: Perfect for static hosting
 - **Expandable Results**: Click to view full content with complete context
@@ -63,7 +64,7 @@ This project has been cleaned and restructured for **complete Netlify deployment
 
 ## 🚨 **Important**
 
-This is a **demo version** that simulates AI functionality. For production use, you would need a backend server for real PDF processing.
+This application now uses **real PDF.js extraction** for actual PDF text processing. The AI functionality is simulated, but PDF text extraction is fully functional and works entirely in the browser.
 
 ## 🎉 **Ready to Deploy!**
 

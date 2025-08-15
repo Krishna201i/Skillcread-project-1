@@ -12,8 +12,24 @@ class NetlifyPDFService {
 
     initializeApp() {
         this.setupEventListeners();
+        this.setupPDFJS();
         this.updateStats();
         this.showWelcomeMessage();
+    }
+    
+    setupPDFJS() {
+        // Set up PDF.js worker if available
+        if (typeof pdfjsLib !== 'undefined') {
+            // Set worker path for PDF.js
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            console.log('PDF.js worker configured successfully');
+            return true;
+        } else {
+            console.warn('PDF.js library not loaded yet');
+            // Retry after a short delay
+            setTimeout(() => this.setupPDFJS(), 1000);
+            return false;
+        }
     }
 
     setupEventListeners() {
@@ -82,7 +98,9 @@ class NetlifyPDFService {
         this.showLoading(true);
         
         try {
-            for (const file of pdfFiles) {
+            for (let i = 0; i < pdfFiles.length; i++) {
+                const file = pdfFiles[i];
+                this.updateLoadingMessage(`Processing ${file.name} (${i + 1}/${pdfFiles.length})...`);
                 await this.processPDFFile(file);
             }
             
@@ -100,106 +118,178 @@ class NetlifyPDFService {
     async processPDFFile(file) {
         console.log('Processing PDF file:', file.name, file.size);
         
+        try {
+            // Validate file size (max 50MB for browser processing)
+            if (file.size > 50 * 1024 * 1024) {
+                throw new Error('File size too large. Please use PDFs under 50MB for browser processing.');
+            }
+            
+            // Extract actual text content from PDF using PDF.js
+            const extractedText = await this.extractTextFromPDF(file);
+            console.log('Extracted text:', extractedText);
+            
+            // Validate extracted content
+            if (!extractedText.chunks || extractedText.chunks.length === 0) {
+                throw new Error('No readable text found in PDF. The document may be image-based or corrupted.');
+            }
+            
+            // Create document with real extracted PDF content
+            const document = {
+                id: Date.now() + Math.random(),
+                filename: file.name,
+                size: file.size,
+                sizeFormatted: this.formatFileSize(file.size),
+                chunks: extractedText.chunks.length,
+                content: extractedText.fullText,
+                chunks: extractedText.chunks,
+                pageCount: extractedText.pageCount,
+                totalWords: extractedText.totalWords,
+                timestamp: new Date().toISOString(),
+                status: 'processed'
+            };
+            
+            console.log('Created document object:', document);
+            this.documents.push(document);
+            return document;
+            
+        } catch (error) {
+            console.error('Error processing PDF:', error);
+            throw error;
+        }
+    }
+
+    // Extract text from PDF using PDF.js
+    async extractTextFromPDF(file) {
+        try {
+            console.log('Starting real PDF extraction for:', file.name);
+            
+            // Check if PDF.js is ready
+            if (typeof pdfjsLib === 'undefined') {
+                throw new Error('PDF.js library not loaded. Please refresh the page and try again.');
+            }
+            
+            // Ensure PDF.js worker is configured
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                this.setupPDFJS();
+            }
+            
+            // Load the PDF document
+            const arrayBuffer = await this.fileToArrayBuffer(file);
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            console.log('PDF loaded, pages:', pdf.numPages);
+            
+            let fullText = '';
+            const pageTexts = [];
+            
+            // Extract text from each page
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                console.log(`Processing page ${pageNum}/${pdf.numPages}`);
+                
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                
+                // Combine text items from the page
+                const pageText = textContent.items
+                    .map(item => item.str)
+                    .join(' ');
+                
+                pageTexts.push({
+                    pageNumber: pageNum,
+                    text: pageText,
+                    wordCount: pageText.split(/\s+/).length
+                });
+                
+                fullText += pageText + '\n\n';
+                
+                // Add page separator for better chunking
+                fullText += `--- PAGE ${pageNum} ---\n\n`;
+            }
+            
+            console.log('Text extraction completed. Total pages:', pdf.numPages);
+            console.log('Total text length:', fullText.length);
+            
+            // Create chunks from the actual extracted text
+            const chunks = this.createTextChunks(fullText, pageTexts);
+            
+            return {
+                fullText: fullText,
+                chunks: chunks,
+                pageCount: pdf.numPages,
+                totalWords: fullText.split(/\s+/).length
+            };
+            
+        } catch (error) {
+            console.error('PDF extraction error:', error);
+            throw new Error(`Failed to extract text from PDF: ${error.message}`);
+        }
+    }
+    
+    // Helper method to convert file to ArrayBuffer
+    fileToArrayBuffer(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            
-            reader.onload = async (e) => {
-                try {
-                    console.log('File loaded, extracting text...');
-                    
-                    // Extract actual text content from PDF (simulated for demo)
-                    // In production, this would use a real PDF parsing library
-                    const extractedText = this.extractTextFromPDF(file);
-                    console.log('Extracted text:', extractedText);
-                    
-                    // Create document with real extracted content
-                    const document = {
-                        id: Date.now() + Math.random(),
-                        filename: file.name,
-                        size: file.size,
-                        sizeFormatted: this.formatFileSize(file.size),
-                        chunks: extractedText.chunks.length,
-                        content: extractedText.fullText,
-                        chunks: extractedText.chunks,
-                        timestamp: new Date().toISOString(),
-                        status: 'processed'
-                    };
-                    
-                    console.log('Created document object:', document);
-                    this.documents.push(document);
-                    resolve(document);
-                    
-                } catch (error) {
-                    console.error('Error processing PDF:', error);
-                    reject(error);
-                }
-            };
-            
-            reader.onerror = (error) => {
-                console.error('FileReader error:', error);
-                reject(new Error('Failed to read file'));
-            };
-            
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
             reader.readAsArrayBuffer(file);
         });
     }
 
-    // Extract text from PDF and create realistic chunks
-    extractTextFromPDF(file) {
-        // Simulate PDF text extraction with realistic content
-        // In production, this would use pdf.js or similar library
-        
-        const sampleTexts = [
-            "Policy Implementation Guidelines: This document outlines the comprehensive framework for implementing organizational policies across all departments. The guidelines ensure consistent application of standards while maintaining flexibility for department-specific requirements. Each policy must be reviewed quarterly and updated as necessary to reflect current best practices and regulatory requirements.",
-            
-            "Data Security Protocols: All sensitive information must be encrypted using AES-256 encryption standards. Access to confidential data requires multi-factor authentication and is limited to authorized personnel only. Regular security audits are conducted monthly to identify potential vulnerabilities and ensure compliance with industry standards.",
-            
-            "Employee Training Requirements: Mandatory training sessions are conducted quarterly for all staff members. Topics include workplace safety, data protection, and customer service excellence. Completion certificates must be submitted to HR within 30 days of each session. Failure to complete training may result in restricted access to certain systems.",
-            
-            "Budget Allocation Process: Annual budget planning begins in Q3 of the previous fiscal year. Department heads submit proposals by September 1st, followed by review meetings in October. Final allocations are approved by the board in November and implemented starting January 1st of the new fiscal year.",
-            
-            "Quality Assurance Standards: All products and services must meet minimum quality thresholds established by industry regulators. Quality checks are performed at multiple stages: during production, before packaging, and after delivery. Customer feedback is collected and analyzed monthly to identify areas for improvement."
-        ];
-        
-        const fullText = sampleTexts.join('\n\n');
-        const chunks = this.createTextChunks(fullText);
-        
-        return {
-            fullText: fullText,
-            chunks: chunks
-        };
-    }
-
-    // Create realistic text chunks with page numbers and metadata
-    createTextChunks(text) {
-        const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    // Create text chunks from real PDF content with proper page mapping
+    createTextChunks(fullText, pageTexts) {
         const chunks = [];
+        let chunkId = 0;
         
-        sentences.forEach((sentence, index) => {
-            const pageNumber = Math.floor(index / 3) + 1; // Simulate page distribution
-            const chunkNumber = index + 1;
+        // Process each page separately for better accuracy
+        pageTexts.forEach((pageData, pageIndex) => {
+            const pageNumber = pageData.pageNumber;
+            const pageText = pageData.text;
             
-            chunks.push({
-                id: `chunk_${index}`,
-                content: sentence.trim() + '.',
-                pageNumber: pageNumber,
-                chunkNumber: chunkNumber,
-                metadata: {
-                    documentSection: this.getDocumentSection(index),
-                    timestamp: new Date().toISOString(),
-                    wordCount: sentence.split(' ').length
+            // Split page text into sentences
+            const sentences = pageText.split(/[.!?]+/).filter(s => s.trim().length > 10);
+            
+            sentences.forEach((sentence, sentenceIndex) => {
+                const chunkNumber = chunkId + 1;
+                
+                // Clean up the sentence
+                let cleanSentence = sentence.trim();
+                if (cleanSentence && !cleanSentence.endsWith('.') && !cleanSentence.endsWith('!') && !cleanSentence.endsWith('?')) {
+                    cleanSentence += '.';
+                }
+                
+                if (cleanSentence.length > 5) { // Only include meaningful chunks
+                    chunks.push({
+                        id: `chunk_${chunkId}`,
+                        content: cleanSentence,
+                        pageNumber: pageNumber,
+                        chunkNumber: chunkNumber,
+                        metadata: {
+                            documentSection: this.getDocumentSection(pageIndex, sentenceIndex),
+                            timestamp: new Date().toISOString(),
+                            wordCount: cleanSentence.split(/\s+/).length,
+                            pageIndex: pageIndex,
+                            sentenceIndex: sentenceIndex
+                        }
+                    });
+                    chunkId++;
                 }
             });
         });
         
+        console.log(`Created ${chunks.length} chunks from ${pageTexts.length} pages`);
         return chunks;
     }
 
-    // Get document section based on chunk position
-    getDocumentSection(chunkIndex) {
+    // Get document section based on page and sentence position
+    getDocumentSection(pageIndex, sentenceIndex) {
         const sections = ['Introduction', 'Policy Guidelines', 'Implementation Procedures', 'Quality Standards', 'Compliance Requirements'];
-        const sectionIndex = Math.floor(chunkIndex / 5) % sections.length;
-        return sections[sectionIndex];
+        
+        // Use page index to determine section (more accurate for real PDFs)
+        if (pageIndex === 0) return 'Introduction';
+        if (pageIndex < 3) return 'Policy Guidelines';
+        if (pageIndex < 6) return 'Implementation Procedures';
+        if (pageIndex < 9) return 'Quality Standards';
+        return 'Compliance Requirements';
     }
 
     formatFileSize(bytes) {
@@ -229,7 +319,7 @@ class NetlifyPDFService {
                         <i class="fas fa-file-pdf me-3" style="color: var(--primary-color); font-size: 1.2rem;"></i>
                         <div>
                             <div class="fw-bold">${doc.filename}</div>
-                            <small class="text-muted">${doc.sizeFormatted} • ${doc.chunks} chunks</small>
+                            <small class="text-muted">${doc.sizeFormatted} • ${doc.pageCount || 'N/A'} pages • ${doc.chunks} chunks • ${doc.totalWords || 'N/A'} words</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
@@ -962,6 +1052,14 @@ class NetlifyPDFService {
         const loading = document.getElementById('loading');
         loading.style.display = show ? 'block' : 'none';
     }
+    
+    updateLoadingMessage(message) {
+        const loading = document.getElementById('loading');
+        const messageElement = loading.querySelector('p');
+        if (messageElement) {
+            messageElement.textContent = message;
+        }
+    }
 
     showAlert(message, type) {
         const alertsDiv = document.getElementById('alerts');
@@ -1052,7 +1150,18 @@ Built with ❤️ for complete Netlify deployment!`);
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.pdfService = new NetlifyPDFService();
+    // Wait for PDF.js to be available
+    const checkPDFJS = () => {
+        if (typeof pdfjsLib !== 'undefined') {
+            console.log('PDF.js library loaded successfully');
+            window.pdfService = new NetlifyPDFService();
+        } else {
+            console.log('Waiting for PDF.js to load...');
+            setTimeout(checkPDFJS, 100);
+        }
+    };
+    
+    checkPDFJS();
 });
 
 // Global functions for HTML onclick handlers
