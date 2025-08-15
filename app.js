@@ -253,11 +253,26 @@ class NetlifyPDFService {
                 const relevance = Math.random() * 0.8 + 0.2; // Random relevance score
                 
                 results.push({
+                    id: Date.now() + Math.random(),
                     content: `This is search result ${i + 1} from ${doc.filename}. The query "${query}" was found with relevance score ${relevance.toFixed(3)}. This represents a comprehensive search that shows every possible outcome.`,
+                    fullContent: `This is the FULL EXPANDED content for search result ${i + 1} from ${doc.filename}. 
+
+The query "${query}" was found with relevance score ${relevance.toFixed(3)}. 
+
+This represents a comprehensive search that shows every possible outcome. In a real implementation, this would contain the actual extracted text from the PDF document, including:
+
+• The specific paragraph or section where the query was found
+• Context around the search term
+• Page numbers and locations
+• Related content and references
+• Metadata about the document section
+
+This expanded view gives you the complete context of what was found, allowing you to understand the full meaning and relevance of the search result.`,
                     filename: doc.filename,
                     similarity_score: relevance,
                     chunk_index: Math.floor(Math.random() * doc.chunks) + 1,
-                    result_number: i + 1
+                    result_number: i + 1,
+                    isExpanded: false
                 });
             }
         });
@@ -327,7 +342,7 @@ class NetlifyPDFService {
         
         results.forEach((result, index) => {
             html += `
-                <div class="results-card">
+                <div class="results-card" id="result-${result.id}">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h6 class="mb-0">
                             <i class="fas fa-file-pdf me-2"></i>${result.filename}
@@ -337,11 +352,31 @@ class NetlifyPDFService {
                             <span class="badge bg-secondary">Result #${result.result_number}</span>
                         </div>
                     </div>
-                    <p class="mb-2">${result.content}</p>
-                    <small class="text-muted">
-                        <i class="fas fa-layer-group me-1"></i>Chunk ${result.chunk_index} | 
-                        <i class="fas fa-list-ol me-1"></i>Result ${index + 1} of ${results.length}
-                    </small>
+                    
+                    <div class="result-preview mb-2">
+                        <p class="mb-2">${result.content}</p>
+                    </div>
+                    
+                    <div class="result-full-content" id="full-content-${result.id}" style="display: none;">
+                        <div class="alert alert-info">
+                            <i class="fas fa-expand-alt me-2"></i>
+                            <strong>Full Content View:</strong> This shows the complete extracted content from the document.
+                        </div>
+                        <div class="full-content-text">
+                            ${result.fullContent.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-layer-group me-1"></i>Chunk ${result.chunk_index} | 
+                            <i class="fas fa-list-ol me-1"></i>Result ${index + 1} of ${results.length}
+                        </small>
+                        <button class="btn btn-sm btn-outline-primary" onclick="toggleResultContent(${result.id})">
+                            <i class="fas fa-expand-alt me-1"></i>
+                            <span id="toggle-text-${result.id}">Expand</span>
+                        </button>
+                    </div>
                 </div>
             `;
         });
@@ -478,4 +513,24 @@ function showInfo() {
 
 function removeFile(fileId) {
     window.pdfService.removeFile(fileId);
+}
+
+function toggleResultContent(resultId) {
+    const fullContent = document.getElementById(`full-content-${resultId}`);
+    const toggleText = document.getElementById(`toggle-text-${resultId}`);
+    const toggleButton = toggleText.parentElement;
+    
+    if (fullContent.style.display === 'none') {
+        fullContent.style.display = 'block';
+        toggleText.textContent = 'Collapse';
+        toggleButton.innerHTML = '<i class="fas fa-compress-alt me-1"></i>Collapse';
+        toggleButton.classList.remove('btn-outline-primary');
+        toggleButton.classList.add('btn-outline-secondary');
+    } else {
+        fullContent.style.display = 'none';
+        toggleText.textContent = 'Expand';
+        toggleButton.innerHTML = '<i class="fas fa-expand-alt me-1"></i>Expand';
+        toggleButton.classList.remove('btn-outline-secondary');
+        toggleButton.classList.add('btn-outline-primary');
+    }
 }
