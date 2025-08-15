@@ -133,20 +133,20 @@ class NetlifyPDFService {
                 throw new Error('No readable text found in PDF. The document may be image-based or corrupted.');
             }
             
-            // Create document with real extracted PDF content
-            const document = {
-                id: Date.now() + Math.random(),
-                filename: file.name,
-                size: file.size,
-                sizeFormatted: this.formatFileSize(file.size),
-                chunks: extractedText.chunks.length,
-                content: extractedText.fullText,
-                chunks: extractedText.chunks,
-                pageCount: extractedText.pageCount,
-                totalWords: extractedText.totalWords,
-                timestamp: new Date().toISOString(),
-                status: 'processed'
-            };
+                                // Create document with real extracted PDF content
+                    const document = {
+                        id: `doc_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                        filename: file.name,
+                        size: file.size,
+                        sizeFormatted: this.formatFileSize(file.size),
+                        chunks: extractedText.chunks.length,
+                        content: extractedText.fullText,
+                        chunks: extractedText.chunks,
+                        pageCount: extractedText.pageCount,
+                        totalWords: extractedText.totalWords,
+                        timestamp: new Date().toISOString(),
+                        status: 'processed'
+                    };
             
             console.log('Created document object:', document);
             this.documents.push(document);
@@ -442,7 +442,7 @@ class NetlifyPDFService {
                     
                     // Create result with actual content
                     const result = {
-                        id: Date.now() + Math.random(),
+                        id: `result_${docIndex}_${chunkIndex}_${Date.now()}`,
                         content: chunk.content,
                         fullContent: this.createFullContent(chunk, contextBefore, contextAfter, query),
                         filename: doc.filename,
@@ -1102,6 +1102,29 @@ class NetlifyPDFService {
 
     showWelcomeMessage() {
         this.showAlert('Welcome to PDF Semantic Search & RAG! Upload multiple PDFs to get started.', 'info');
+        
+        // Add a test toggle button for debugging
+        setTimeout(() => {
+            this.addTestToggleButton();
+        }, 1000);
+    }
+    
+    addTestToggleButton() {
+        const alertsDiv = document.getElementById('alerts');
+        if (alertsDiv) {
+            const testButton = `
+                <div class="alert alert-info">
+                    <strong>Test Toggle Function:</strong> 
+                    <button class="btn btn-sm btn-primary" onclick="testToggleFunction()">
+                        Test Toggle
+                    </button>
+                    <div id="test-content" style="display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 5px;">
+                        This is test content that should toggle!
+                    </div>
+                </div>
+            `;
+            alertsDiv.innerHTML += testButton;
+        }
     }
 
     showInfo() {
@@ -1182,21 +1205,62 @@ function removeFile(fileId) {
 }
 
 function toggleResultContent(resultId) {
+    console.log('Toggling result content for ID:', resultId);
+    
     const fullContent = document.getElementById(`full-content-${resultId}`);
     const toggleText = document.getElementById(`toggle-text-${resultId}`);
+    
+    if (!fullContent) {
+        console.error('Full content element not found for ID:', resultId);
+        return;
+    }
+    
+    if (!toggleText) {
+        console.error('Toggle text element not found for ID:', resultId);
+        return;
+    }
+    
     const toggleButton = toggleText.parentElement;
     
-    if (fullContent.style.display === 'none') {
+    if (!toggleButton) {
+        console.error('Toggle button not found for ID:', resultId);
+        return;
+    }
+    
+    const isCurrentlyHidden = fullContent.style.display === 'none' || fullContent.style.display === '';
+    
+    if (isCurrentlyHidden) {
+        // Expand the content
         fullContent.style.display = 'block';
         toggleText.textContent = 'Collapse';
         toggleButton.innerHTML = '<i class="fas fa-compress-alt me-1"></i>Collapse';
         toggleButton.classList.remove('btn-outline-primary');
         toggleButton.classList.add('btn-outline-secondary');
+        console.log('Content expanded for result:', resultId);
     } else {
+        // Collapse the content
         fullContent.style.display = 'none';
         toggleText.textContent = 'Expand';
         toggleButton.innerHTML = '<i class="fas fa-expand-alt me-1"></i>Expand';
         toggleButton.classList.remove('btn-outline-secondary');
         toggleButton.classList.add('btn-outline-primary');
+        console.log('Content collapsed for result:', resultId);
+    }
+}
+
+// Test function for debugging toggle functionality
+function testToggleFunction() {
+    console.log('Test toggle function called');
+    const testContent = document.getElementById('test-content');
+    if (testContent) {
+        if (testContent.style.display === 'none' || testContent.style.display === '') {
+            testContent.style.display = 'block';
+            console.log('Test content expanded');
+        } else {
+            testContent.style.display = 'none';
+            console.log('Test content collapsed');
+        }
+    } else {
+        console.error('Test content element not found');
     }
 }
