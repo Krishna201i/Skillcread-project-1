@@ -98,14 +98,19 @@ class NetlifyPDFService {
     }
 
     async processPDFFile(file) {
+        console.log('Processing PDF file:', file.name, file.size);
+        
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             
             reader.onload = async (e) => {
                 try {
+                    console.log('File loaded, extracting text...');
+                    
                     // Extract actual text content from PDF (simulated for demo)
                     // In production, this would use a real PDF parsing library
                     const extractedText = this.extractTextFromPDF(file);
+                    console.log('Extracted text:', extractedText);
                     
                     // Create document with real extracted content
                     const document = {
@@ -120,15 +125,21 @@ class NetlifyPDFService {
                         status: 'processed'
                     };
                     
+                    console.log('Created document object:', document);
                     this.documents.push(document);
                     resolve(document);
                     
                 } catch (error) {
+                    console.error('Error processing PDF:', error);
                     reject(error);
                 }
             };
             
-            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.onerror = (error) => {
+                console.error('FileReader error:', error);
+                reject(new Error('Failed to read file'));
+            };
+            
             reader.readAsArrayBuffer(file);
         });
     }
@@ -304,16 +315,37 @@ class NetlifyPDFService {
     }
 
     simulateSearch(query) {
+        console.log('Starting search for:', query);
+        console.log('Available documents:', this.documents);
+        
         // Real semantic search using actual document chunks
         const results = [];
         const keywords = query.toLowerCase().split(' ');
         
-        this.documents.forEach((doc) => {
+        if (this.documents.length === 0) {
+            console.log('No documents available for search');
+            return [];
+        }
+        
+        this.documents.forEach((doc, docIndex) => {
+            console.log(`Processing document ${docIndex + 1}:`, doc.filename);
+            console.log('Document chunks:', doc.chunks);
+            
+            if (!doc.chunks || !Array.isArray(doc.chunks)) {
+                console.log('No chunks found in document:', doc);
+                return;
+            }
+            
             // Search through actual document chunks
             doc.chunks.forEach((chunk, chunkIndex) => {
+                console.log(`Processing chunk ${chunkIndex + 1}:`, chunk);
+                
                 const relevance = this.calculateRelevance(chunk.content, query, keywords);
+                console.log('Chunk relevance score:', relevance);
                 
                 if (relevance > 0.3) { // Only include relevant results
+                    console.log('Chunk meets relevance threshold, adding to results');
+                    
                     // Get surrounding context chunks
                     const contextBefore = this.getContextChunks(doc.chunks, chunkIndex, 'before');
                     const contextAfter = this.getContextChunks(doc.chunks, chunkIndex, 'after');
@@ -337,14 +369,20 @@ class NetlifyPDFService {
                         actualChunk: chunk
                     };
                     
+                    console.log('Created result:', result);
                     results.push(result);
                 }
             });
         });
         
+        console.log('Total results found:', results.length);
+        
         // Sort by relevance and merge document matches
         results.sort((a, b) => b.similarity_score - a.similarity_score);
-        return this.mergeDocumentMatches(results);
+        const mergedResults = this.mergeDocumentMatches(results);
+        console.log('Final merged results:', mergedResults);
+        
+        return mergedResults;
     }
 
     // Calculate real relevance based on actual text content
@@ -969,6 +1007,17 @@ class NetlifyPDFService {
     }
 
     showInfo() {
+        // Test function to debug issues
+        console.log('=== DEBUG INFO ===');
+        console.log('Documents loaded:', this.documents.length);
+        console.log('Documents:', this.documents);
+        console.log('Current mode:', this.currentMode);
+        console.log('Search count:', this.searchCount);
+        
+        if (this.documents.length > 0) {
+            console.log('First document chunks:', this.documents[0].chunks);
+        }
+        
         alert(`PDF Semantic Search & RAG Service (Netlify Ready)
 
 This is a complete application ready for Netlify deployment.
@@ -983,6 +1032,11 @@ Features:
 ✅ Modern dark theme
 ✅ No result limits - see everything!
 ✅ Ready for full Netlify deployment
+
+Current Status:
+📊 Documents loaded: ${this.documents.length}
+🔍 Search mode: ${this.currentMode}
+📈 Total searches: ${this.searchCount}
 
 Deployment Instructions:
 1. Upload ALL files from this folder to Netlify
