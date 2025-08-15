@@ -1,8 +1,8 @@
 # 🚀 Complete Netlify Deployment Guide
 
-## 📁 **NEW FILE STRUCTURE - Upload ALL Files to Netlify**
+## 📁 **CLEANED FILE STRUCTURE - Only Essential Files**
 
-Your project is now restructured so you can upload **ALL FILES** to Netlify at once, eliminating "page not found" errors!
+Your project has been cleaned and restructured for **complete Netlify deployment**. Only the essential files needed for deployment remain!
 
 ### **What to Upload to Netlify:**
 
@@ -13,14 +13,6 @@ Your project is now restructured so you can upload **ALL FILES** to Netlify at o
 ├── 📄 package.json       ← Project configuration (ROOT LEVEL)
 ├── 📄 netlify.toml       ← Netlify settings (ROOT LEVEL)
 ├── 📄 DEPLOYMENT_GUIDE.md ← This file (ROOT LEVEL)
-├── 📁 Semantic Search & QA over Policy Documents/
-│   └── 📁 Semantic-Search-QA-over-Policy-Documents/
-│       ├── 📁 vector_db/
-│       ├── 📁 templates/
-│       ├── 📁 static/
-│       ├── 📄 main.py
-│       ├── 📄 requirements.txt
-│       └── 📄 start.bat
 └── 📄 README.md
 ```
 
@@ -53,6 +45,8 @@ Your project is now restructured so you can upload **ALL FILES** to Netlify at o
 - ✅ **No Backend Required**
 - ✅ **Instant Global CDN**
 - ✅ **No "Page Not Found" Errors**
+- ✅ **Expandable Search Results**
+- ✅ **Clean, Minimal Structure**
 
 ## 🔧 **Key Features**
 
@@ -68,6 +62,7 @@ Your project is now restructured so you can upload **ALL FILES** to Netlify at o
 - **RAG Mode**: AI-powered question answering
 - **Comprehensive Results**: Shows ALL possible matches
 - **No Result Limits**: See everything from your documents
+- **Expandable Results**: Click to view full content
 
 ### **User Experience**
 - Modern, responsive design
@@ -82,6 +77,7 @@ Your project is now restructured so you can upload **ALL FILES** to Netlify at o
 2. **No Build Required**: Pure static site
 3. **Proper Routing**: `netlify.toml` handles all routes
 4. **Complete Package**: All necessary files included
+5. **Clean Structure**: No unnecessary files or directories
 
 ## 🚨 **Important Notes**
 
@@ -89,6 +85,7 @@ Your project is now restructured so you can upload **ALL FILES** to Netlify at o
 2. **PDF Processing**: Currently simulated (shows demo results)
 3. **File Storage**: Files are processed in browser memory only
 4. **Privacy**: No files are sent to external servers
+5. **Minimal Footprint**: Only essential files for deployment
 
 ## 🔮 **Future Enhancements**
 
@@ -109,7 +106,7 @@ If you encounter issues:
 
 ## 🎉 **Ready to Deploy!**
 
-Your application is now perfectly structured for Netlify deployment. Simply upload the entire project folder and enjoy your live PDF Semantic Search & RAG service!
+Your application is now perfectly structured for Netlify deployment with only essential files. Simply upload the entire project folder and enjoy your live PDF Semantic Search & RAG service!
 
 ---
 

@@ -1,8 +1,8 @@
 # 🚀 PDF Semantic Search & RAG Service - Netlify Ready
 
-## 📁 **NEW STRUCTURE - Upload ALL Files to Netlify**
+## 📁 **CLEANED STRUCTURE - Only Essential Files**
 
-This project has been restructured for **complete Netlify deployment**. You can now upload the entire project folder to Netlify without any "page not found" errors!
+This project has been cleaned and restructured for **complete Netlify deployment**. Only the essential files needed for deployment remain!
 
 ## 🎯 **Quick Deploy**
 
@@ -10,7 +10,7 @@ This project has been restructured for **complete Netlify deployment**. You can 
 2. **Drag the ENTIRE project folder to Netlify**
 3. **Your site is live instantly!** 🎉
 
-## 📁 **Project Structure**
+## 📁 **Clean Project Structure**
 
 ```
 📁 Project Root (Upload ALL to Netlify)
@@ -19,14 +19,6 @@ This project has been restructured for **complete Netlify deployment**. You can 
 ├── 📄 package.json       ← Project configuration
 ├── 📄 netlify.toml       ← Netlify settings
 ├── 📄 DEPLOYMENT_GUIDE.md ← Complete deployment guide
-├── 📁 Semantic Search & QA over Policy Documents/
-│   └── 📁 Semantic-Search-QA-over-Policy-Documents/
-│       ├── 📁 vector_db/     ← Vector database
-│       ├── 📁 templates/     ← HTML templates
-│       ├── 📁 static/        ← Static assets
-│       ├── 📄 main.py        ← Python backend
-│       ├── 📄 requirements.txt ← Python dependencies
-│       └── 📄 start.bat      ← Windows startup script
 └── 📄 README.md
 ```
 
@@ -38,6 +30,7 @@ This project has been restructured for **complete Netlify deployment**. You can 
 - **Beautiful UI**: Modern dark theme with responsive design
 - **No Backend Required**: Works entirely in the browser
 - **Netlify Ready**: Perfect for static hosting
+- **Expandable Results**: Click to view full content of each search result
 
 ## 🔧 **How It Works**
 
@@ -45,6 +38,7 @@ This project has been restructured for **complete Netlify deployment**. You can 
 2. **File Management**: View, manage, and remove files
 3. **Search**: Use semantic search or AI-powered RAG
 4. **Results**: Get comprehensive results from all documents
+5. **Expand**: Click "Expand" to see full content of any result
 
 ## 🌐 **Deployment**
 
@@ -52,6 +46,7 @@ This project has been restructured for **complete Netlify deployment**. You can 
 - **Pure static site**
 - **Instant deployment**
 - **Global CDN**
+- **Clean, minimal structure**
 
 ## 📖 **Documentation**
 
@@ -65,7 +60,7 @@ This is a **demo version** that simulates AI functionality. For production use, 
 
 ## 🎉 **Ready to Deploy!**
 
-Your application is now perfectly structured for Netlify. Simply upload all files and enjoy your live PDF Semantic Search & RAG service!
+Your application is now perfectly structured for Netlify with only essential files. Simply upload all files and enjoy your live PDF Semantic Search & RAG service!
 
 ---
 
