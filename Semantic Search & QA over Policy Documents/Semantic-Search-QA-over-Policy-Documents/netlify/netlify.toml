@@ -1,15 +1,20 @@
 [build]
+  # This is a static site - no build required
+  command = "echo 'Static site - no build required'"
   publish = "."
-  command = ""
+  
+  # Environment variables (if needed in the future)
+  [build.environment]
+    NODE_VERSION = "18"
+    NPM_VERSION = "9"
 
-[build.environment]
-  NODE_VERSION = "18"
-
+# Redirects for SPA routing (if needed)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# Headers for security and performance
 [[headers]]
   for = "/*"
   [headers.values]
@@ -17,10 +22,28 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
-# Explicitly specify this is a static site
-[context.production.environment]
-  NODE_ENV = "production"
+# Cache control for static assets
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
-[context.deploy-preview.environment]
-  NODE_ENV = "preview"
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Functions (if needed in the future)
+# [functions]
+#   directory = "functions"
+
+# Edge functions (if needed in the future)
+# [edge_functions]
+#   directory = "edge-functions"

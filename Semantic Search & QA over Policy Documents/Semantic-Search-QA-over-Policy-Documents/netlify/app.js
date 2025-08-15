@@ -1,5 +1,6 @@
 // Netlify-Compatible PDF Semantic Search & RAG Service
-// This is a demo version that works without a backend
+// This is a complete demo version that works without a backend
+// Ready for full Netlify deployment with all files
 
 class NetlifyPDFService {
     constructor() {
@@ -87,6 +88,7 @@ class NetlifyPDFService {
             
             this.showAlert(`Successfully processed ${pdfFiles.length} PDF file(s)!`, 'success');
             this.updateStats();
+            this.updateFileList();
             
         } catch (error) {
             this.showAlert('Error processing files: ' + error.message, 'danger');
@@ -103,11 +105,14 @@ class NetlifyPDFService {
                 try {
                     // Simulate PDF processing (in real app, this would send to backend)
                     const document = {
+                        id: Date.now() + Math.random(),
                         filename: file.name,
                         size: file.size,
+                        sizeFormatted: this.formatFileSize(file.size),
                         chunks: Math.floor(file.size / 1000) + 1, // Simulate chunks
                         content: 'PDF content would be extracted here...',
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
+                        status: 'processed'
                     };
                     
                     this.documents.push(document);
@@ -121,6 +126,56 @@ class NetlifyPDFService {
             reader.onerror = () => reject(new Error('Failed to read file'));
             reader.readAsArrayBuffer(file);
         });
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    updateFileList() {
+        const fileList = document.getElementById('fileList');
+        const fileItems = document.getElementById('fileItems');
+        
+        if (this.documents.length === 0) {
+            fileList.style.display = 'none';
+            return;
+        }
+        
+        fileList.style.display = 'block';
+        
+        let html = '';
+        this.documents.forEach((doc, index) => {
+            html += `
+                <div class="file-item">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-pdf me-3" style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                        <div>
+                            <div class="fw-bold">${doc.filename}</div>
+                            <small class="text-muted">${doc.sizeFormatted} • ${doc.chunks} chunks</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">${doc.status}</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeFile(${doc.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        fileItems.innerHTML = html;
+    }
+
+    removeFile(fileId) {
+        this.documents = this.documents.filter(doc => doc.id !== fileId);
+        this.updateStats();
+        this.updateFileList();
+        this.showAlert('File removed successfully.', 'success');
     }
 
     setMode(mode) {
@@ -372,26 +427,34 @@ class NetlifyPDFService {
     }
 
     showWelcomeMessage() {
-        this.showAlert('Welcome to PDF Semantic Search & RAG! Upload some PDFs to get started.', 'info');
+        this.showAlert('Welcome to PDF Semantic Search & RAG! Upload multiple PDFs to get started.', 'info');
     }
 
     showInfo() {
-        alert(`PDF Semantic Search & RAG Service (Netlify Demo Version)
+        alert(`PDF Semantic Search & RAG Service (Netlify Ready)
 
-This is a demonstration version that works on Netlify.
+This is a complete application ready for Netlify deployment.
 
 Features:
 ✅ Beautiful, responsive UI
-✅ Drag & drop PDF upload
+✅ Multiple PDF upload & management
+✅ Drag & drop multiple files
+✅ File list with individual management
 ✅ COMPREHENSIVE semantic search (shows ALL results)
 ✅ Complete RAG responses (covers ALL documents)
 ✅ Modern dark theme
 ✅ No result limits - see everything!
+✅ Ready for full Netlify deployment
+
+Deployment Instructions:
+1. Upload ALL files from this folder to Netlify
+2. No backend required - works entirely in the browser
+3. Perfect for static hosting
 
 Note: This demo version simulates the AI functionality.
 For full functionality, you would need a backend server.
 
-Built with ❤️ for Netlify deployment!`);
+Built with ❤️ for complete Netlify deployment!`);
     }
 }
 
@@ -411,4 +474,8 @@ function performSearch() {
 
 function showInfo() {
     window.pdfService.showInfo();
+}
+
+function removeFile(fileId) {
+    window.pdfService.removeFile(fileId);
 }
