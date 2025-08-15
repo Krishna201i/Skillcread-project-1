@@ -34,11 +34,11 @@ This project has been cleaned and restructured for **complete Netlify deployment
 - **Enhanced Metadata**: Page numbers, confidence scores, and relevance indicators
 - **Merged Results**: Multiple matches in same document are intelligently combined
 - **Beautiful UI**: Modern dark theme with responsive design
-- **Free AI Stack**: Complete local AI processing with no external costs
+- **Hugging Face AI Stack**: Complete local AI processing powered by state-of-the-art models
 - **Real PDF Extraction**: Uses PDF.js for actual text extraction from PDFs
-- **Semantic Embeddings**: Sentence Transformers for understanding document meaning
+- **Semantic Embeddings**: Hugging Face Sentence Transformers for understanding document meaning
 - **Vector Search**: FAISS database for lightning-fast similarity search
-- **Local LLM**: AI responses generated locally (ready for LLaMA 3/Mistral)
+- **AI Text Generation**: Hugging Face distilgpt2 for intelligent responses
 - **No Backend Required**: Works entirely in the browser
 - **Netlify Ready**: Perfect for static hosting
 - **Expandable Results**: Click to view full content with complete context
@@ -68,14 +68,14 @@ This project has been cleaned and restructured for **complete Netlify deployment
 
 ## 🚨 **Important**
 
-This application now uses a **complete free AI stack** that works entirely in the browser:
+This application now uses a **complete Hugging Face Transformers AI stack** that works entirely in the browser:
 
 - **PDF Extraction**: PDF.js for real text extraction
-- **Embeddings**: Sentence Transformers (Xenova) for semantic understanding
+- **Embeddings**: Hugging Face Sentence Transformers (all-MiniLM-L6-v2) for semantic understanding
 - **Vector Database**: FAISS for similarity search
-- **LLM**: Local AI processing (ready for LLaMA 3/Mistral integration)
+- **Text Generation**: Hugging Face distilgpt2 for intelligent AI responses
 
-No external API calls required - everything runs locally in your browser!
+Powered by state-of-the-art AI models from Hugging Face - no external API calls required!
 
 ## 🎉 **Ready to Deploy!**
 

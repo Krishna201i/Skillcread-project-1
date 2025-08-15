@@ -1,7 +1,7 @@
 {
   "name": "pdf-semantic-search-rag-netlify",
   "version": "1.0.0",
-  "description": "Complete PDF Semantic Search & RAG Service with Free AI Stack (PDF.js + Sentence Transformers + FAISS + Local LLM) - Ready for Netlify Deployment",
+  "description": "Complete PDF Semantic Search & RAG Service with Hugging Face Transformers AI Stack (PDF.js + Sentence Transformers + FAISS + Text Generation) - Ready for Netlify Deployment",
   "main": "index.html",
   "scripts": {
     "start": "echo 'This is a static site - no build required!' && echo 'Upload all files to Netlify for deployment.'",
