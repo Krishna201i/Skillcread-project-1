@@ -1,0 +1,21 @@
+{
+  "name": "pdf-semantic-search-netlify",
+  "version": "1.0.0",
+  "description": "PDF Semantic Search & RAG Service - Netlify Demo Version",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'This is a static site - no build required'",
+    "build": "echo 'This is a static site - no build required'"
+  },
+  "keywords": [
+    "pdf",
+    "semantic-search",
+    "rag",
+    "netlify",
+    "static-site"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

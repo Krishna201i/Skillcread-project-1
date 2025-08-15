@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Semantic Search & RAG Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00d4ff;
+            --primary-hover: #00b8e6;
+            --secondary-color: #7928ca;
+            --accent-color: #ff0080;
+            --success-color: #00ff88;
+            --warning-color: #ffaa00;
+            --error-color: #ff4757;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --card-bg: #111111;
+            --card-hover: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #808080;
+            --border-color: #333333;
+            --border-hover: #444444;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 20px rgba(0, 212, 255, 0.3);
+            --glow-lg: 0 0 40px rgba(0, 212, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, var(--dark-bg) 50%, var(--darker-bg) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(121, 40, 202, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Enhanced Console Styles */
+        .console-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 400px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid var(--primary-color);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--glow-lg);
+            z-index: 1000;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            transform: translateX(420px);
+        }
+
+        .console-panel.show {
+            transform: translateX(0);
+        }
+
+        .console-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            color: var(--dark-bg);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 14px 14px 0 0;
+            font-weight: 600;
+        }
+
+        .console-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: var(--dark-bg);
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            box-shadow: var(--glow);
+        }
+
+        .console-toggle:hover {
+            background: var(--primary-hover);
+            transform: scale(1.1);
+            box-shadow: var(--glow-lg);
+        }
+
+        .console-content {
+            padding: 20px;
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+
+        .console-line {
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .console-timestamp {
+            color: var(--text-muted);
+            margin-right: 10px;
+        }
+
+        .console-type {
+            display: inline-block;
+            width: 60px;
+            text-align: center;
+            margin-right: 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .console-type.info { background: var(--primary-color); color: var(--dark-bg); }
+        .console-type.success { background: var(--success-color); color: var(--dark-bg); }
+        .console-type.warning { background: var(--warning-color); color: var(--dark-bg); }
+        .console-type.error { background: var(--error-color); color: var(--dark-bg); }
+
+        .console-message {
+            color: var(--text-secondary);
+        }
+
+        /* Enhanced Dark Theme */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            opacity: 0.6;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to top, var(--dark-bg), transparent);
+        }
+
+        /* Enhanced Cards */
+        .feature-card, .card {
+            background: linear-gradient(145deg, var(--card-bg), var(--card-hover));
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card::before, .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before, .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover, .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-color);
+            box-shadow: var(--glow-lg);
+        }
+
+        /* Enhanced Buttons */
+        .btn-interactive {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 12px;
+            color: var(--dark-bg);
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--glow);
+        }
+
+        .btn-interactive::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-interactive:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-interactive:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow-lg);
+        }
+
+        /* Enhanced Upload Area */
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 20px;
+            background: linear-gradient(145deg, var(--card-bg), var(--card-hover));
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.02);
+            box-shadow: var(--glow-lg);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--success-color);
+            background: linear-gradient(145deg, rgba(0, 255, 136, 0.1), var(--card-hover));
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Enhanced Search Input */
+        .search-input {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Enhanced Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            position: relative;
+            box-shadow: var(--glow);
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        /* Enhanced Notifications */
+        .notification {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+        }
+
+        .notification.success { border-left-color: var(--success-color); }
+        .notification.error { border-left-color: var(--error-color); }
+        .notification.warning { border-left-color: var(--warning-color); }
+        .notification.info { border-left-color: var(--primary-color); }
+
+        /* Enhanced Stats */
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        /* Enhanced Results */
+        .result-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .result-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--glow);
+            transform: translateX(5px);
+        }
+
+        /* Animations */
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-in { animation: fadeIn 0.8s ease-in-out; }
+        .slide-up { animation: slideUp 0.6s ease-out; }
+        .bounce-in { animation: bounceIn 0.8s ease-out; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .console-panel {
+                width: 90vw;
+                right: 5vw;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+</head>
+<body>
+    <!-- Console Toggle Button -->
+    <button class="console-toggle" id="consoleToggle" title="Toggle Console">
+        <i class="fas fa-terminal"></i>
+    </button>
+
+    <!-- Dynamic Console Panel -->
+    <div class="console-panel" id="consolePanel">
+        <div class="console-header">
+            <span><i class="fas fa-terminal me-2"></i>System Console</span>
+            <button class="btn btn-sm btn-outline-dark" onclick="app.clearConsole()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="console-content" id="consoleContent">
+            <div class="console-line">
+                <span class="console-timestamp">[<span id="currentTime"></span>]</span>
+                <span class="console-type info">INFO</span>
+                <span class="console-message">Console initialized. Ready for system logs.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-5 mb-5">
+        <div class="container position-relative">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4 fade-in">
+                        <i class="fas fa-search-plus me-3"></i>
+                        PDF Semantic Search & RAG
+                    </h1>
+                    <p class="lead mb-4 slide-up">
+                        Upload your PDF documents and discover intelligent insights with AI-powered semantic search and retrieval augmented generation.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap slide-up">
+                        <button class="btn btn-light btn-lg btn-interactive" onclick="scrollToSection('features')">
+                            <i class="fas fa-rocket me-2"></i>Get Started
+                        </button>
+                        <button class="btn btn-outline-light btn-lg btn-interactive" onclick="scrollToSection('upload-section')">
+                            <i class="fas fa-upload me-2"></i>Upload Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5 mb-5">
+        <div class="container">
+            <h2 class="text-center mb-5 slide-up">
+                <i class="fas fa-star me-3"></i>Powerful Features
+            </h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center interactive-card bounce-in">
+                        <div class="mb-3">
+                            <i class="fas fa-brain fa-3x text-primary"></i>
+                        </div>
+                        <h4>AI-Powered Search</h4>
+                        <p class="text-muted">Find relevant content using semantic understanding, not just keywords.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center interactive-card bounce-in" style="animation-delay: 0.2s;">
+                        <div class="mb-3">
+                            <i class="fas fa-robot fa-3x text-success"></i>
+                        </div>
+                        <h4>Smart RAG</h4>
+                        <p class="text-muted">Get intelligent answers based on your document content.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center interactive-card bounce-in" style="animation-delay: 0.4s;">
+                        <div class="mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-warning"></i>
+                        </div>
+                        <h4>Secure & Fast</h4>
+                        <p class="text-muted">Lightning-fast search with enterprise-grade security.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Section -->
+    <section class="py-5">
+        <div class="container">
+            <!-- Upload Section -->
+            <div id="upload-section" class="row mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-lg" style="background: var(--card-bg); border-radius: 20px;">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Upload PDF Documents
+                            </h3>
+                            <div class="upload-area p-5 text-center" id="uploadArea">
+                                <i class="fas fa-file-pdf fa-3x text-primary mb-3"></i>
+                                <h5>Drag & Drop PDF files here</h5>
+                                <p class="text-muted mb-3">or click to browse</p>
+                                <input type="file" id="fileInput" multiple accept=".pdf" class="d-none">
+                                <button class="btn btn-primary btn-interactive" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Choose Files
+                                </button>
+                            </div>
+                            <div id="uploadProgress" class="mt-3 d-none">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted mt-2 d-block">Processing...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="row mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-lg" style="background: var(--card-bg); border-radius: 20px;">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">
+                                <i class="fas fa-search me-2"></i>Search & Explore
+                            </h3>
+                            
+                            <!-- Search Toggle -->
+                            <div class="text-center mb-4">
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="searchMode" id="searchMode" checked>
+                                    <label class="btn btn-outline-primary btn-interactive" for="searchMode">
+                                        <i class="fas fa-search me-2"></i>Semantic Search
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="searchMode" id="ragMode">
+                                    <label class="btn btn-outline-success btn-interactive" for="ragMode">
+                                        <i class="fas fa-robot me-2"></i>AI Answers (RAG)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="input-group mb-3">
+                                <input type="text" id="searchInput" class="form-control search-input" 
+                                       placeholder="Enter your search query..." 
+                                       style="background: var(--card-bg); color: var(--text-primary); border-color: var(--border-color);">
+                                <button class="btn btn-primary btn-interactive" type="button" id="searchBtn">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                            </div>
+
+                            <!-- Results Section -->
+                            <div id="resultsContainer" class="mt-4 d-none">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-list me-2"></i>Search Results
+                                </div>
+                                <div id="searchResults"></div>
+                                <div id="ragResults" class="d-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="row mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-lg" style="background: var(--card-bg); border-radius: 20px;">
+                        <div class="card-body p-4">
+                            <h4 class="text-center mb-4">
+                                <i class="fas fa-chart-bar me-2"></i>Document Statistics
+                            </h4>
+                            <div class="row text-center">
+                                <div class="col-md-6">
+                                    <div class="p-3">
+                                        <div class="stat-number" id="documentCount">0</div>
+                                        <p class="text-muted mb-0">Documents</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3">
+                                        <div class="stat-number" id="chunkCount">0</div>
+                                        <p class="text-muted mb-0">Text Chunks</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-lg" style="background: var(--card-bg); border-radius: 20px;">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">
+                                <i class="fas fa-folder me-2"></i>Your Documents
+                            </h3>
+                            <div id="documentsList" class="text-center">
+                                <p class="text-muted">No documents uploaded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="scrollToTop()" title="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
