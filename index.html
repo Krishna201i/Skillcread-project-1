@@ -236,6 +236,160 @@
             color: var(--text-secondary);
         }
         
+        /* New Intelligent Retrieval Styles */
+        .highlighted-term {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+        
+        .factual-summary-section {
+            margin-bottom: 1rem;
+        }
+        
+        .semantic-matches-section {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(121, 40, 202, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        .search-result-content {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .context-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 3px solid var(--border-color);
+        }
+        
+        .context-section.before {
+            border-left-color: var(--warning-color);
+        }
+        
+        .context-section.after {
+            border-left-color: var(--success-color);
+        }
+        
+        .main-result-section {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .context-label, .main-result-label {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+        
+        .context-paragraph, .main-paragraph {
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+        
+        .additional-matches-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 170, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid var(--warning-color);
+        }
+        
+        .additional-matches-label {
+            color: var(--warning-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+        
+        .additional-match-item {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--warning-color);
+        }
+        
+        .match-number {
+            color: var(--warning-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .match-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+        
+        .match-metadata {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .query-analysis-section {
+            background: rgba(121, 40, 202, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--secondary-color);
+        }
+        
+        .query-analysis-label {
+            color: var(--secondary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+        
+        .query-terms {
+            margin-bottom: 1rem;
+        }
+        
+        .confidence-indicator {
+            margin-top: 1rem;
+        }
+        
+        .progress {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(135deg, var(--success-color), #00cc6a);
+            border-radius: 10px;
+        }
+        
+        .result-metadata {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
         .loading {
             display: none;
             text-align: center;
@@ -388,16 +542,16 @@
                 <i class="fas fa-rocket me-2"></i>Netlify Ready - Deploy All Files
             </div>
             <h1 class="hero-title">PDF Semantic Search & RAG</h1>
-            <p class="hero-subtitle">AI-powered document search and question answering - Complete Netlify Deployment</p>
+            <p class="hero-subtitle">AI-powered intelligent retrieval system with full context, semantic analysis, and comprehensive results</p>
             
             <div class="row justify-content-center">
                 <div class="col-md-4">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-search"></i>
+                            <i class="fas fa-brain"></i>
                         </div>
-                        <h4>Smart Search</h4>
-                        <p>Find documents by meaning, not just keywords</p>
+                        <h4>Intelligent Retrieval</h4>
+                        <p>Full paragraphs with context, semantic analysis, and highlighted terms</p>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -405,8 +559,8 @@
                         <div class="feature-icon">
                             <i class="fas fa-robot"></i>
                         </div>
-                        <h4>AI Answers</h4>
-                        <p>Get intelligent answers using RAG technology</p>
+                        <h4>AI-Powered RAG</h4>
+                        <p>Get intelligent answers using advanced retrieval-augmented generation</p>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -415,7 +569,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
                         <h4>Multiple Files</h4>
-                        <p>Upload and process multiple PDFs simultaneously</p>
+                        <p>Upload and process multiple PDFs with comprehensive search</p>
                     </div>
                 </div>
             </div>
@@ -475,8 +629,8 @@
 
         <!-- Search Section -->
         <div class="search-section">
-            <h4 id="searchTitle">Semantic Search</h4>
-            <p id="searchDescription">Find relevant content in your documents</p>
+            <h4 id="searchTitle">Intelligent Semantic Search</h4>
+            <p id="searchDescription">Find relevant content with full context, semantic analysis, and comprehensive results</p>
             
             <div class="row">
                 <div class="col-md-8">

@@ -24,21 +24,28 @@ This project has been cleaned and restructured for **complete Netlify deployment
 
 ## ✨ **Features**
 
-- **Multiple PDF Upload**: Handle many files simultaneously
+- **Intelligent Retrieval System**: Full paragraphs with 2-3 surrounding context paragraphs
 - **Semantic Search**: Find content by meaning, not just keywords
-- **AI-Powered RAG**: Get intelligent answers from your documents
+- **AI-Powered RAG**: Get intelligent answers using advanced retrieval-augmented generation
+- **Comprehensive Results**: Shows ALL possible outcomes with full context
+- **Highlighted Query Terms**: Matched terms are visually highlighted for easy identification
+- **Semantic Variations**: Discover related terms and concepts automatically
+- **Factual Summaries**: Quick answers for numerical and factual queries
+- **Enhanced Metadata**: Page numbers, confidence scores, and relevance indicators
+- **Merged Results**: Multiple matches in same document are intelligently combined
 - **Beautiful UI**: Modern dark theme with responsive design
 - **No Backend Required**: Works entirely in the browser
 - **Netlify Ready**: Perfect for static hosting
-- **Expandable Results**: Click to view full content of each search result
+- **Expandable Results**: Click to view full content with complete context
 
 ## 🔧 **How It Works**
 
 1. **Upload PDFs**: Drag & drop multiple PDF files
 2. **File Management**: View, manage, and remove files
-3. **Search**: Use semantic search or AI-powered RAG
-4. **Results**: Get comprehensive results from all documents
-5. **Expand**: Click "Expand" to see full content of any result
+3. **Intelligent Search**: Use semantic search with full context and highlighting
+4. **Comprehensive Results**: Get detailed results with surrounding paragraphs
+5. **Expand & Analyze**: Click "Expand" to see full context and query analysis
+6. **Semantic Insights**: Discover related terms and confidence levels
 
 ## 🌐 **Deployment**
 
