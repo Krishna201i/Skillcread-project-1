@@ -450,10 +450,14 @@ class NetlifyPDFService {
             searchTitle.textContent = 'Semantic Search';
             searchDescription.textContent = 'Find relevant content in your documents';
             searchInput.placeholder = 'Enter your search query...';
-        } else {
+        } else if (mode === 'rag') {
             searchTitle.textContent = 'AI Answers (RAG)';
             searchDescription.textContent = 'Ask questions and get AI-powered answers';
             searchInput.placeholder = 'Ask a question about your documents...';
+        } else if (mode === 'summary') {
+            searchTitle.textContent = 'PDF Summary';
+            searchDescription.textContent = 'Get comprehensive summaries of your documents';
+            searchInput.placeholder = 'Type "summary" or ask for specific document overview...';
         }
     }
 
@@ -480,6 +484,8 @@ class NetlifyPDFService {
             let results;
             if (this.currentMode === 'search') {
                 results = this.simulateSearch(query);
+            } else if (this.currentMode === 'summary') {
+                results = this.generateDocumentSummary(query);
             } else {
                 results = this.simulateRAG(query);
             }
@@ -739,6 +745,38 @@ class NetlifyPDFService {
             if (relevantSentence) {
                 return `Based on ${filename}: ${relevantSentence.trim()}.`;
             }
+        }
+        
+        // Generate general summary for any query
+        const sentences = chunkContent.split(/[.!?]+/).filter(s => s.trim().length > 10);
+        if (sentences.length > 0) {
+            // Find the most relevant sentence based on query keywords
+            const queryKeywords = query.toLowerCase().split(' ').filter(word => word.length > 2);
+            let bestSentence = sentences[0]; // Default to first sentence
+            let bestScore = 0;
+            
+            sentences.forEach(sentence => {
+                let score = 0;
+                queryKeywords.forEach(keyword => {
+                    if (sentence.toLowerCase().includes(keyword)) {
+                        score += 1;
+                    }
+                });
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestSentence = sentence;
+                }
+            });
+            
+            // If no keyword matches, use the most comprehensive sentence
+            if (bestScore === 0) {
+                bestSentence = sentences.reduce((longest, current) => 
+                    current.length > longest.length ? current : longest
+                );
+            }
+            
+            return `Summary from ${filename}: ${bestSentence.trim()}.`;
         }
         
         return null;
@@ -1035,7 +1073,32 @@ class NetlifyPDFService {
             return `No matching information found in the provided documents for "${query}".`;
         }
         
-        // Extract key information from chunks
+        // Check if this is a summary request
+        const isSummaryRequest = query.toLowerCase().includes('summary') || 
+                                query.toLowerCase().includes('summarize') ||
+                                query.toLowerCase().includes('overview') ||
+                                query.toLowerCase().includes('main points');
+        
+        if (isSummaryRequest) {
+            // Generate a comprehensive summary
+            let summary = `Here's a comprehensive summary of the key information from your documents:\n\n`;
+            
+            chunks.forEach((chunk, index) => {
+                const sentences = chunk.content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+                if (sentences.length > 0) {
+                    // Use the most comprehensive sentence for summary
+                    const bestSentence = sentences.reduce((longest, current) => 
+                        current.length > longest.length ? current : longest
+                    );
+                    summary += `• ${bestSentence.trim()}\n`;
+                }
+            });
+            
+            summary += `\nThis summary is based on ${chunks.length} relevant sections from your uploaded documents.`;
+            return summary;
+        }
+        
+        // Extract key information from chunks for regular queries
         const keyInfo = chunks.map(chunk => {
             const sentences = chunk.content.split(/[.!?]+/).filter(s => s.trim().length > 10);
             const relevantSentence = sentences.find(sentence => 
@@ -1090,11 +1153,108 @@ class NetlifyPDFService {
         }
     }
 
+    // Generate comprehensive document summary
+    generateDocumentSummary(query) {
+        if (this.documents.length === 0) {
+            return {
+                answer: 'No documents available for summary generation.',
+                sources: []
+            };
+        }
+
+        // Check if user wants a general summary or specific document summary
+        const isGeneralSummary = query.toLowerCase().includes('summary') || 
+                                query.toLowerCase().includes('overview') ||
+                                query.toLowerCase().includes('main points') ||
+                                query.toLowerCase().includes('all documents');
+
+        if (isGeneralSummary) {
+            // Generate summary for all documents
+            let summary = `# Comprehensive Document Summary\n\n`;
+            
+            this.documents.forEach((doc, index) => {
+                summary += `## ${doc.filename}\n`;
+                summary += `**Pages:** ${doc.pageCount || 'N/A'} | **Chunks:** ${doc.chunks} | **Words:** ${doc.totalWords || 'N/A'}\n\n`;
+                
+                // Get key sentences from the document
+                const keySentences = this.extractKeySentences(doc.content, 3);
+                keySentences.forEach((sentence, sentenceIndex) => {
+                    summary += `${sentenceIndex + 1}. ${sentence.trim()}\n`;
+                });
+                
+                summary += `\n---\n\n`;
+            });
+            
+            summary += `**Total Documents:** ${this.documents.length}\n`;
+            summary += `**Total Content:** ${this.documents.reduce((sum, doc) => sum + (doc.totalWords || 0), 0)} words`;
+            
+            return {
+                answer: summary,
+                sources: this.documents.map(doc => ({
+                    content: doc.content.substring(0, 200) + '...',
+                    filename: doc.filename,
+                    pageNumber: 'All',
+                    chunkNumber: 'All',
+                    similarity_score: 1.0,
+                    documentSection: 'Complete Document'
+                }))
+            };
+        } else {
+            // Generate summary for specific document mentioned in query
+            const targetDoc = this.documents.find(doc => 
+                doc.filename.toLowerCase().includes(query.toLowerCase()) ||
+                query.toLowerCase().includes(doc.filename.toLowerCase())
+            );
+            
+            if (targetDoc) {
+                let summary = `# Summary: ${targetDoc.filename}\n\n`;
+                summary += `**Pages:** ${targetDoc.pageCount || 'N/A'} | **Chunks:** ${targetDoc.chunks} | **Words:** ${targetDoc.totalWords || 'N/A'}\n\n`;
+                
+                // Get key sentences from the document
+                const keySentences = this.extractKeySentences(targetDoc.content, 5);
+                summary += `## Key Points:\n\n`;
+                keySentences.forEach((sentence, index) => {
+                    summary += `${index + 1}. ${sentence.trim()}\n`;
+                });
+                
+                return {
+                    answer: summary,
+                    sources: [{
+                        content: targetDoc.content.substring(0, 200) + '...',
+                        filename: targetDoc.filename,
+                        pageNumber: 'All',
+                        chunkNumber: 'All',
+                        similarity_score: 1.0,
+                        documentSection: 'Complete Document'
+                    }]
+                };
+            } else {
+                return {
+                    answer: `No specific document found matching "${query}". Try asking for a general summary or specify a document name.`,
+                    sources: []
+                };
+            }
+        }
+    }
+
+    // Extract key sentences from document content
+    extractKeySentences(content, maxSentences = 5) {
+        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+        
+        // Sort sentences by length (longer sentences often contain more information)
+        sentences.sort((a, b) => b.length - a.length);
+        
+        // Return top sentences, but limit to maxSentences
+        return sentences.slice(0, maxSentences);
+    }
+
     displayResults(results, query) {
         const resultsDiv = document.getElementById('results');
         
         if (this.currentMode === 'search') {
             this.displaySearchResults(results, query);
+        } else if (this.currentMode === 'summary') {
+            this.displaySummaryResults(results, query);
         } else {
             this.displayRAGResults(results, query);
         }
@@ -1223,6 +1383,54 @@ class NetlifyPDFService {
         });
         
         html += '</div>';
+        resultsDiv.innerHTML = html;
+    }
+
+    displaySummaryResults(results, query) {
+        const resultsDiv = document.getElementById('results');
+        
+        if (!results.answer) {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No summary available for "${query}".
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="search-section">
+                <h4><i class="fas fa-file-alt me-2"></i>Document Summary for "${query}"</h4>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>AI-Generated Summary:</strong> This summary is based on actual content extracted from your PDF documents.
+                </div>
+                <div class="results-card">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Summary:</h6>
+                        <div class="summary-content" style="white-space: pre-line; line-height: 1.6;">
+                            ${results.answer}
+                        </div>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6><i class="fas fa-sources me-2"></i>Source Documents (${results.sources.length}):</h6>
+                        ${results.sources.map(source => `
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <span><i class="fas fa-file-pdf me-2"></i>${source.filename}</span>
+                                    <small class="text-muted ms-2">Page ${source.pageNumber}, Chunk ${source.chunkNumber}</small>
+                                </div>
+                                <span class="badge bg-secondary">Score: ${source.similarity_score.toFixed(3)}</span>
+                            </div>
+                            <p class="text-muted small mb-2">${source.content}</p>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
         resultsDiv.innerHTML = html;
     }
 
